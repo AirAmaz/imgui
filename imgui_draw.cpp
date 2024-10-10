@@ -2072,7 +2072,7 @@ void ImDrawList::AddConcavePolyFilledCustom(const std::vector<std::vector<std::a
         for (const auto& points : polygon) {
             const uint32_t& current_size = points.size();
 
-            for (auto i0 = current_size - 1, i1 = 0; i1 < current_size; i0 = i1++)
+            for (uint32_t i0 = current_size - 1, i1 = 0; i1 < current_size; i0 = i1++)
             {
                 const auto &p0 = ImVec2(static_cast<float>(points[i0][0]), static_cast<float>(points[i0][1]));
                 const auto &p1 = ImVec2(static_cast<float>(points[i1][0]), static_cast<float>(points[i1][1]));
@@ -2083,7 +2083,7 @@ void ImDrawList::AddConcavePolyFilledCustom(const std::vector<std::vector<std::a
                 temp_normals[i0].y = -dx;
             }
 
-            for (auto i0 = current_size - 1, i1 = 0; i1 < current_size; i0 = i1++)
+            for (uint32_t i0 = current_size - 1, i1 = 0; i1 < current_size; i0 = i1++)
             {
                 // Average normals
                 const ImVec2& n0 = temp_normals[i0];
