@@ -105,6 +105,8 @@ typedef DWORD(WINAPI* PFN_XInputGetState)(DWORD, XINPUT_STATE*);
 
 struct ImGui_ImplWin32_Data
 {
+    HWND                        hWnd;
+    HWND                        MouseHwnd;
     int                         MouseTrackedArea;   // 0: not tracked, 1: client area, 2: non-client area
     int                         MouseButtonsDown;
     INT64                       Time;
