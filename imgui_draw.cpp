@@ -2030,6 +2030,108 @@ void ImDrawList::AddConcavePolyFilled(const ImVec2* points, const int points_cou
     }
 }
 
+// Outer CCW, inner CW
+void ImDrawList::AddConcavePolyFilledCustom(const std::vector<std::vector<std::array<double, 2> > > &polygon, const std::vector<uint32_t> &indices, ImU32 col) {
+    if (polygon.size() == 0 || (col & IM_COL32_A_MASK) == 0)
+        return;
+
+    const ImVec2 uv = _Data->TexUvWhitePixel;
+
+    unsigned int points_count = 0;
+    unsigned int indices_count = indices.size();
+
+    IM_ASSERT(indices_count % 3 == 0);
+
+    for (const auto& boundary : polygon)
+        points_count += boundary.size();
+
+    if (Flags & ImDrawListFlags_AntiAliasedFill)
+    {
+        // Anti-aliased Fill
+        const float AA_SIZE = _FringeScale;
+        const ImU32 col_trans = col & ~IM_COL32_A_MASK;
+        const int idx_count = indices_count + points_count * 6;
+        const int vtx_count = (points_count * 2);
+        PrimReserve(idx_count, vtx_count);
+
+        // Add indexes for fill
+        unsigned int vtx_inner_idx = _VtxCurrentIdx;
+        unsigned int vtx_outer_idx = _VtxCurrentIdx + 1;
+
+
+        for (auto i = 2; i < indices_count; i+=3) {
+            _IdxWritePtr[0] = (ImDrawIdx)(vtx_inner_idx + (indices[i-2] << 1));
+            _IdxWritePtr[1] = (ImDrawIdx)(vtx_inner_idx + (indices[i-1] << 1));
+            _IdxWritePtr[2] = (ImDrawIdx)(vtx_inner_idx + (indices[i  ] << 1));
+            _IdxWritePtr += 3;
+        }
+
+        // Compute normals
+        _Data->TempBuffer.reserve_discard(points_count);
+        ImVec2* temp_normals = _Data->TempBuffer.Data;
+        for (const auto& points : polygon) {
+            const uint32_t& current_size = points.size();
+
+            for (auto i0 = current_size - 1, i1 = 0; i1 < current_size; i0 = i1++)
+            {
+                const auto &p0 = ImVec2(static_cast<float>(points[i0][0]), static_cast<float>(points[i0][1]));
+                const auto &p1 = ImVec2(static_cast<float>(points[i1][0]), static_cast<float>(points[i1][1]));
+                float dx = p1.x - p0.x;
+                float dy = p1.y - p0.y;
+                IM_NORMALIZE2F_OVER_ZERO(dx, dy);
+                temp_normals[i0].x = dy;
+                temp_normals[i0].y = -dx;
+            }
+
+            for (auto i0 = current_size - 1, i1 = 0; i1 < current_size; i0 = i1++)
+            {
+                // Average normals
+                const ImVec2& n0 = temp_normals[i0];
+                const ImVec2& n1 = temp_normals[i1];
+                float dm_x = (n0.x + n1.x) * 0.5f;
+                float dm_y = (n0.y + n1.y) * 0.5f;
+                IM_FIXNORMAL2F(dm_x, dm_y);
+                dm_x *= AA_SIZE * 0.5f;
+                dm_y *= AA_SIZE * 0.5f;
+
+                // Add vertices
+                _VtxWritePtr[0].pos.x = (points[i1][0] - dm_x); _VtxWritePtr[0].pos.y = (points[i1][1] - dm_y); _VtxWritePtr[0].uv = uv; _VtxWritePtr[0].col = col;        // Inner
+                _VtxWritePtr[1].pos.x = (points[i1][0] + dm_x); _VtxWritePtr[1].pos.y = (points[i1][1] + dm_y); _VtxWritePtr[1].uv = uv; _VtxWritePtr[1].col = col_trans;  // Outer
+                _VtxWritePtr += 2;
+
+                // Add indexes for fringes
+                _IdxWritePtr[0] = (ImDrawIdx)(vtx_inner_idx + (i1 << 1)); _IdxWritePtr[1] = (ImDrawIdx)(vtx_inner_idx + (i0 << 1)); _IdxWritePtr[2] = (ImDrawIdx)(vtx_outer_idx + (i0 << 1));
+                _IdxWritePtr[3] = (ImDrawIdx)(vtx_outer_idx + (i0 << 1)); _IdxWritePtr[4] = (ImDrawIdx)(vtx_outer_idx + (i1 << 1)); _IdxWritePtr[5] = (ImDrawIdx)(vtx_inner_idx + (i1 << 1));
+                _IdxWritePtr += 6;
+            }
+        }
+
+        _VtxCurrentIdx += (ImDrawIdx)vtx_count;
+    }
+    else
+    {
+        // Non Anti-aliased Fill
+        const int idx_count = indices_count;
+        const int vtx_count = points_count;
+        PrimReserve(idx_count, vtx_count);
+
+        for (const auto& points : polygon) {
+            for (const auto& p : points) {
+                _VtxWritePtr[0].pos = ImVec2(p[0], p[1]); _VtxWritePtr[0].uv = uv; _VtxWritePtr[0].col = col;
+                _VtxWritePtr++;
+            }
+        }
+
+        for (auto i = 2; i < indices_count; i+=3) {
+            _IdxWritePtr[0] = (ImDrawIdx)(_VtxCurrentIdx + (indices[i-2]));
+            _IdxWritePtr[1] = (ImDrawIdx)(_VtxCurrentIdx + (indices[i-1]));
+            _IdxWritePtr[2] = (ImDrawIdx)(_VtxCurrentIdx + (indices[i  ]));
+            _IdxWritePtr += 3;
+        }
+        _VtxCurrentIdx += (ImDrawIdx)vtx_count;
+    }
+}
+
 //-----------------------------------------------------------------------------
 // [SECTION] ImDrawListSplitter
 //-----------------------------------------------------------------------------
