@@ -74,7 +74,10 @@ Index of this file:
 #include <stdarg.h>                 // va_list, va_start, va_end
 #include <stddef.h>                 // ptrdiff_t, NULL
 #include <string.h>                 // memset, memmove, memcpy, strlen, strchr, strcpy, strcmp
-#include <DrawDefine.h>
+#include <cstdint>
+#include <vector>
+#include <cmath>
+#include <corecrt_math_defines.h>
 // Define attributes of all API symbols declarations (e.g. for DLL under Windows)
 // IMGUI_API is used for core imgui functions, IMGUI_IMPL_API is used for the default backends files (imgui_impl_xxx.h)
 // Using dear imgui via a shared library is not recommended: we don't guarantee backward nor forward ABI compatibility + this is a call-heavy library and function call overhead adds up.
@@ -309,6 +312,22 @@ struct ImVec4
     IM_VEC4_CLASS_EXTRA     // Define additional constructors and implicit cast operators in imconfig.h to convert back and forth between your math types and ImVec4.
 #endif
 };
+struct Point_2 {
+    double lat, lon;
+    ImVec2 pos;
+    Point_2() : lat(0), lon(0), pos(0, 0) {}
+    Point_2(const double lat_, const double lon_) : lat(lat_), lon(lon_),  pos(0, 0) {project();}
+    Point_2(const double lat_, const double lon_, const ImVec2& pos_) : lat(lat_), lon(lon_), pos(pos_) {}
+    void setScreen(const ImVec2& pos_) {pos = pos_;};
+    void project() {
+        double radLat = lat * M_PI / 180.0;
+        pos.x = lon * 111319.490793;
+        pos.y = std::log(std::tan(M_PI / 4.0 + radLat / 2.0)) * 6378137.0;
+    }
+};
+using N = uint32_t;
+using Polygon_2 = std::vector<std::vector<Point_2>>;
+using Line_2 = std::vector<Point_2>;
 IM_MSVC_RUNTIME_CHECKS_RESTORE
 
 //-----------------------------------------------------------------------------
