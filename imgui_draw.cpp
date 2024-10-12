@@ -2117,7 +2117,7 @@ void ImDrawList::AddConcavePolyFilledCustom(const Polygon_2& polygon, const std:
 
         for (const auto& points : polygon) {
             for (const auto& p : points) {
-                _VtxWritePtr[0].pos = p; _VtxWritePtr[0].uv = uv; _VtxWritePtr[0].col = col;
+                _VtxWritePtr[0].pos = p.pos; _VtxWritePtr[0].uv = uv; _VtxWritePtr[0].col = col;
                 _VtxWritePtr++;
             }
         }
