@@ -2031,7 +2031,7 @@ void ImDrawList::AddConcavePolyFilled(const ImVec2* points, const int points_cou
 }
 
 // Outer CCW, inner CW
-void ImDrawList::AddConcavePolyFilledCustom(const std::vector<std::vector<std::array<double, 2> > > &polygon, const std::vector<uint32_t> &indices, ImU32 col) {
+void ImDrawList::AddConcavePolyFilledCustom(const Polygon_2& polygon, const std::vector<N>& indices, ImU32 col) {
     if (polygon.size() == 0 || (col & IM_COL32_A_MASK) == 0)
         return;
 
@@ -2074,8 +2074,8 @@ void ImDrawList::AddConcavePolyFilledCustom(const std::vector<std::vector<std::a
 
             for (uint32_t i0 = current_size - 1, i1 = 0; i1 < current_size; i0 = i1++)
             {
-                const auto &p0 = ImVec2(static_cast<float>(points[i0][0]), static_cast<float>(points[i0][1]));
-                const auto &p1 = ImVec2(static_cast<float>(points[i1][0]), static_cast<float>(points[i1][1]));
+                const auto &p0 = points[i0].pos;
+                const auto &p1 = points[i1].pos;
                 float dx = p1.x - p0.x;
                 float dy = p1.y - p0.y;
                 IM_NORMALIZE2F_OVER_ZERO(dx, dy);
@@ -2095,8 +2095,8 @@ void ImDrawList::AddConcavePolyFilledCustom(const std::vector<std::vector<std::a
                 dm_y *= AA_SIZE * 0.5f;
 
                 // Add vertices
-                _VtxWritePtr[0].pos.x = (points[i1][0] - dm_x); _VtxWritePtr[0].pos.y = (points[i1][1] - dm_y); _VtxWritePtr[0].uv = uv; _VtxWritePtr[0].col = col;        // Inner
-                _VtxWritePtr[1].pos.x = (points[i1][0] + dm_x); _VtxWritePtr[1].pos.y = (points[i1][1] + dm_y); _VtxWritePtr[1].uv = uv; _VtxWritePtr[1].col = col_trans;  // Outer
+                _VtxWritePtr[0].pos.x = (points[i1].pos.x - dm_x); _VtxWritePtr[0].pos.y = (points[i1].pos.y - dm_y); _VtxWritePtr[0].uv = uv; _VtxWritePtr[0].col = col;        // Inner
+                _VtxWritePtr[1].pos.x = (points[i1].pos.x + dm_x); _VtxWritePtr[1].pos.y = (points[i1].pos.y + dm_y); _VtxWritePtr[1].uv = uv; _VtxWritePtr[1].col = col_trans;  // Outer
                 _VtxWritePtr += 2;
 
                 // Add indexes for fringes
@@ -2117,7 +2117,7 @@ void ImDrawList::AddConcavePolyFilledCustom(const std::vector<std::vector<std::a
 
         for (const auto& points : polygon) {
             for (const auto& p : points) {
-                _VtxWritePtr[0].pos = ImVec2(p[0], p[1]); _VtxWritePtr[0].uv = uv; _VtxWritePtr[0].col = col;
+                _VtxWritePtr[0].pos = p; _VtxWritePtr[0].uv = uv; _VtxWritePtr[0].col = col;
                 _VtxWritePtr++;
             }
         }

@@ -74,8 +74,7 @@ Index of this file:
 #include <stdarg.h>                 // va_list, va_start, va_end
 #include <stddef.h>                 // ptrdiff_t, NULL
 #include <string.h>                 // memset, memmove, memcpy, strlen, strchr, strcpy, strcmp
-#include <vector>
-#include <array>
+#include <DrawDefine.h>
 // Define attributes of all API symbols declarations (e.g. for DLL under Windows)
 // IMGUI_API is used for core imgui functions, IMGUI_IMPL_API is used for the default backends files (imgui_impl_xxx.h)
 // Using dear imgui via a shared library is not recommended: we don't guarantee backward nor forward ABI compatibility + this is a call-heavy library and function call overhead adds up.
@@ -3116,7 +3115,7 @@ struct ImDrawList
     IMGUI_API void  AddPolyline(const ImVec2* points, int num_points, ImU32 col, ImDrawFlags flags, float thickness);
     IMGUI_API void  AddConvexPolyFilled(const ImVec2* points, int num_points, ImU32 col);
     IMGUI_API void  AddConcavePolyFilled(const ImVec2* points, int num_points, ImU32 col);
-    IMGUI_API void  AddConcavePolyFilledCustom(const std::vector<std::vector<std::array<double, 2>>>& polygon, const std::vector<uint32_t>& indices, ImU32 col);
+    IMGUI_API void  AddConcavePolyFilledCustom(const Polygon_2& polygon, const std::vector<N>& indices, ImU32 col);
 
     // Image primitives
     // - Read FAQ to understand what ImTextureID is.
