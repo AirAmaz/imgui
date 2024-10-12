@@ -316,14 +316,9 @@ struct Point_2 {
     double lat, lon;
     ImVec2 pos;
     Point_2() : lat(0), lon(0), pos(0, 0) {}
-    Point_2(const double lat_, const double lon_) : lat(lat_), lon(lon_),  pos(0, 0) {project();}
+    Point_2(const double lat_, const double lon_) : lat(lat_), lon(lon_),  pos(lat_, lon_) {}
     Point_2(const double lat_, const double lon_, const ImVec2& pos_) : lat(lat_), lon(lon_), pos(pos_) {}
     void setScreen(const ImVec2& pos_) {pos = pos_;};
-    void project() {
-        double radLat = lat * M_PI / 180.0;
-        pos.x = lon * 111319.490793;
-        pos.y = std::log(std::tan(M_PI / 4.0 + radLat / 2.0)) * 6378137.0;
-    }
 };
 using N = uint32_t;
 using Polygon_2 = std::vector<std::vector<Point_2>>;
