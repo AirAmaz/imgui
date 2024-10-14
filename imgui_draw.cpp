@@ -2032,7 +2032,7 @@ void ImDrawList::AddConcavePolyFilled(const ImVec2* points, const int points_cou
 
 // Outer CCW, inner CW
 void ImDrawList::AddConcavePolyFilledCustom(const Polygon_2& polygon, const std::vector<N>& indices, ImU32 col) {
-    if (polygon.size() == 0 || (col & IM_COL32_A_MASK) == 0)
+    if (polygon.empty() || (col & IM_COL32_A_MASK) == 0)
         return;
 
     const ImVec2 uv = _Data->TexUvWhitePixel;
@@ -2069,6 +2069,7 @@ void ImDrawList::AddConcavePolyFilledCustom(const Polygon_2& polygon, const std:
         // Compute normals
         _Data->TempBuffer.reserve_discard(points_count);
         ImVec2* temp_normals = _Data->TempBuffer.Data;
+        uint32_t prefix = 0;
         for (const auto& points : polygon) {
             const uint32_t& current_size = points.size();
 
@@ -2100,10 +2101,12 @@ void ImDrawList::AddConcavePolyFilledCustom(const Polygon_2& polygon, const std:
                 _VtxWritePtr += 2;
 
                 // Add indexes for fringes
-                _IdxWritePtr[0] = (ImDrawIdx)(vtx_inner_idx + (i1 << 1)); _IdxWritePtr[1] = (ImDrawIdx)(vtx_inner_idx + (i0 << 1)); _IdxWritePtr[2] = (ImDrawIdx)(vtx_outer_idx + (i0 << 1));
-                _IdxWritePtr[3] = (ImDrawIdx)(vtx_outer_idx + (i0 << 1)); _IdxWritePtr[4] = (ImDrawIdx)(vtx_outer_idx + (i1 << 1)); _IdxWritePtr[5] = (ImDrawIdx)(vtx_inner_idx + (i1 << 1));
+                _IdxWritePtr[0] = (ImDrawIdx)(vtx_inner_idx + ((prefix + i1) << 1)); _IdxWritePtr[1] = (ImDrawIdx)(vtx_inner_idx + ((prefix + i0) << 1)); _IdxWritePtr[2] = (ImDrawIdx)(vtx_outer_idx + ((prefix + i0) << 1));
+                _IdxWritePtr[3] = (ImDrawIdx)(vtx_outer_idx + ((prefix + i0) << 1)); _IdxWritePtr[4] = (ImDrawIdx)(vtx_outer_idx + ((prefix + i1) << 1)); _IdxWritePtr[5] = (ImDrawIdx)(vtx_inner_idx + ((prefix + i1) << 1));
                 _IdxWritePtr += 6;
             }
+
+            prefix += current_size;
         }
 
         _VtxCurrentIdx += (ImDrawIdx)vtx_count;
